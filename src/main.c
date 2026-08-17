@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <string.h>
+#include "shell.h"
+
 int main()
 {
-    char input[1024];
+    char input[MAX_INPUT];
 
     printf("=====================================\n");
     printf(" Welcome to ShellForge Version 1.0\n");
