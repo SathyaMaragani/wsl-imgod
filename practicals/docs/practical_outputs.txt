@@ -117,3 +117,53 @@ fork() duplicates that unflushed buffer, so lines printed before fork() can appe
 twice. Running the programs directly on a terminal (line-buffered), or adding
 fflush(stdout) before fork(), removes the duplication. This does not change the
 PID/PPID values being demonstrated.
+
+===== Practical 5a : prog5 (producer-consumer over an anonymous pipe) =====
+$ ./prog5
+Consumer: Received 10000 messages
+
+Producer: Sent 10000 messages
+Total data transferred : 1000000 bytes
+Communication time     : 0.012969 seconds
+Communication throughput: 73.53 MB/s
+
+Three consecutive runs:
+  run 1  0.012969 s   73.53 MB/s
+  run 2  0.013929 s   68.47 MB/s
+  run 3  0.012304 s   77.51 MB/s
+All three received exactly 10000 messages - no loss, no interleaving, because
+100 bytes is well under PIPE_BUF (4096) so each write is atomic.
+
+===== Practical 5b : ls_grep_pipe (ls -l | grep ".c") =====
+$ ./ls_grep_pipe
+-rw-r--r-- 1 lucky lucky   650 Sep 10 05:57 Makefile
+-rw-r--r-- 1 lucky lucky    30 Sep 10 05:29 input.txt
+-rwxr-xr-x 1 lucky lucky 18256 Sep 10 05:58 ls_grep_pipe
+-rw-r--r-- 1 lucky lucky  1467 Sep 10 05:57 ls_grep_pipe.c
+-rw-r--r-- 1 lucky lucky    30 Sep 10 05:29 output.txt
+-rwxr-xr-x 1 lucky lucky 19888 Sep 10 05:57 prog1
+-rw-r--r-- 1 lucky lucky  1261 Sep 10 05:29 prog1.c
+-rwxr-xr-x 1 lucky lucky 18264 Sep 10 05:58 prog2
+-rw-r--r-- 1 lucky lucky  1522 Sep 10 05:29 prog2.c
+-rwxr-xr-x 1 lucky lucky 18144 Sep 10 05:58 prog3
+-rw-r--r-- 1 lucky lucky  1628 Sep 10 05:29 prog3.c
+-rwxr-xr-x 1 lucky lucky 19240 Sep 10 05:58 prog5
+-rw-r--r-- 1 lucky lucky  1912 Sep 10 05:57 prog5.c
+-rw-r--r-- 1 lucky lucky    18 Sep 10 05:29 sample.txt
+-rwxr-xr-x 1 lucky lucky 18560 Sep 10 05:58 wait_waitpid_demo
+-rw-r--r-- 1 lucky lucky  2123 Sep 10 05:29 wait_waitpid_demo.c
+-rwxr-xr-x 1 lucky lucky 18128 Sep 10 05:58 zombie_process
+-rw-r--r-- 1 lucky lucky  1636 Sep 10 05:29 zombie_process.c
+Pipeline execution completed.
+
+Running the real shell pipeline `ls -l | grep ".c"` on the same directory
+produced byte-for-byte identical output, confirming equivalence.
+
+--- strace -f evidence of the mechanism ---
+524   pipe2([3, 4], 0)                = 0
+524   clone(...)                      = 525
+524   clone(...)                      = 526
+525   dup2(4, 1)                      = 1        (child 1: stdout -> pipe)
+526   dup2(3, 0)                      = 0        (child 2: stdin  <- pipe)
+525   execve("/usr/bin/ls", ["ls", "-l"], ...)
+524   wait4(525, ...)
