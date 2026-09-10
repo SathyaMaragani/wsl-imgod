@@ -1,6 +1,6 @@
 # wsl-imgod
 
-Operating Systems and Systems Programming coursework, developed on Ubuntu (WSL2).
+Operating Systems and Systems Programming coursework, developed on Ubuntu 26.04 (WSL2), gcc 15.2.0.
 
 This repository holds two separate bodies of work:
 
@@ -8,6 +8,47 @@ This repository holds two separate bodies of work:
 |------|----------|------------|
 | **ShellForge** - weekly project | repository root (`src/`, `include/`, `Makefile`) | Project-Based Learning: a Unix-like shell, built up week by week |
 | **Practical sessions** | [`practicals/`](practicals/) | Standalone lab practicals 1-4, each self-contained |
+
+---
+
+## Progress so far
+
+### ShellForge (weekly PBL project)
+
+| Week | Status | Delivered |
+|------|--------|-----------|
+| Week 1 | Done | Interactive REPL loop, Makefile-based build, Git repository, Linux dev environment |
+| Week 2 | Done | Dynamic command input, `malloc()` allocation, `realloc()` buffer expansion, `free()` cleanup |
+| Week 3 | Not started | - |
+
+### Practical sessions
+
+| Practical | Status | Program(s) | Topic |
+|-----------|--------|-----------|-------|
+| 1 - part A | Done | `practicals/src/prog1.c` | Execute a user-entered Linux command via `fork()` + `execvp()` + `wait()`, print both PIDs |
+| 1 - part B | Done | `practicals/docs/hardware_abstraction_report.md` | Report on `uname`, `lscpu`, `lsblk`, `ps`, `top` - how the OS abstracts CPU, memory, storage and I/O |
+| 2 - part A | Done | `practicals/src/prog2.c` | Copy a file using only `open()`, `read()`, `write()`, `close()` |
+| 2 - part B | Done | `practicals/docs/strace_analysis_report.md` | `strace` analysis of `cat sample.txt` and of `prog2`; user space / kernel space transitions |
+| 3 | Done | `practicals/src/prog3.c` | PID, PPID and process states at each stage across `fork()` |
+| 4 - part A | Done | `practicals/src/wait_waitpid_demo.c` | Multiple children synchronised with `wait()` vs `waitpid()`, with comparison |
+| 4 - part B | Done | `practicals/src/zombie_process.c` | Create a zombie process, inspect the process table, then eliminate it with `wait()` |
+
+### Environment set up
+
+`gcc` 15.2.0, `g++`, `gdb` 17.1, `valgrind` 3.26.0, `strace` 6.19, `make` 4.4.1, `git` 2.53.0.
+
+### Verified results
+
+All five practical programs compile with `-Wall -g` with no warnings and were run end to end:
+
+- `prog1` forked a child that `execvp`-ed `ls -l`; the parent reported both PIDs and reaped the child.
+- `prog2` copied `input.txt` to `output.txt`; the argument guard returns exit status 1 when given the wrong argument count.
+- `prog3` printed PID/PPID for parent and child through sleep, wait and termination.
+- `wait_waitpid_demo` recovered exit statuses 10, 20 and 30 via `WEXITSTATUS()`, showing `wait()` collecting whichever child finished first and `waitpid()` targeting a specific child.
+- `zombie_process` was captured live in the process table as `1 Z ... zombie_process` / `Z+ [zombie_process] <defunct>`, and the entry disappeared after the parent called `wait()`.
+
+Full recorded output, including the `ps -el` snapshots, is in
+[`practicals/docs/practical_outputs.txt`](practicals/docs/practical_outputs.txt).
 
 ---
 
