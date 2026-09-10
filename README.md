@@ -7,7 +7,7 @@ This repository holds two separate bodies of work:
 | Part | Location | What it is |
 |------|----------|------------|
 | **ShellForge** - weekly project | repository root (`src/`, `include/`, `Makefile`) | Project-Based Learning: a Unix-like shell, built up week by week |
-| **Practical sessions** | [`practicals/`](practicals/) | Standalone lab practicals 1-4, each self-contained |
+| **Practical sessions** | [`practicals/`](practicals/) | Standalone lab practicals 1-5, each self-contained |
 
 ---
 
@@ -32,6 +32,8 @@ This repository holds two separate bodies of work:
 | 3 | Done | `practicals/src/prog3.c` | PID, PPID and process states at each stage across `fork()` |
 | 4 - part A | Done | `practicals/src/wait_waitpid_demo.c` | Multiple children synchronised with `wait()` vs `waitpid()`, with comparison |
 | 4 - part B | Done | `practicals/src/zombie_process.c` | Create a zombie process, inspect the process table, then eliminate it with `wait()` |
+| 5 - part A | Done | `practicals/src/prog5.c` | Producer-consumer over an anonymous pipe, measuring communication efficiency |
+| 5 - part B | Done | `practicals/src/ls_grep_pipe.c` | Implement `ls -l \| grep ".c"` using `pipe()`, `fork()`, `dup2()` and `execlp()` |
 
 ### Environment set up
 
@@ -39,13 +41,15 @@ This repository holds two separate bodies of work:
 
 ### Verified results
 
-All five practical programs compile with `-Wall -g` with no warnings and were run end to end:
+All seven practical programs compile with `-Wall -g` with no warnings and were run end to end:
 
 - `prog1` forked a child that `execvp`-ed `ls -l`; the parent reported both PIDs and reaped the child.
 - `prog2` copied `input.txt` to `output.txt`; the argument guard returns exit status 1 when given the wrong argument count.
 - `prog3` printed PID/PPID for parent and child through sleep, wait and termination.
 - `wait_waitpid_demo` recovered exit statuses 10, 20 and 30 via `WEXITSTATUS()`, showing `wait()` collecting whichever child finished first and `waitpid()` targeting a specific child.
 - `zombie_process` was captured live in the process table as `1 Z ... zombie_process` / `Z+ [zombie_process] <defunct>`, and the entry disappeared after the parent called `wait()`.
+- `prog5` moved 1,000,000 bytes as 10,000 messages through an anonymous pipe in ~0.013 s, about 70 MB/s; all 10,000 arrived intact across three runs.
+- `ls_grep_pipe` produced byte-for-byte the same output as the real shell pipeline `ls -l | grep ".c"`.
 
 Full recorded output, including the `ps -el` snapshots, is in
 [`practicals/docs/practical_outputs.txt`](practicals/docs/practical_outputs.txt).
@@ -78,7 +82,7 @@ make run
 
 ---
 
-## Part 2 - Practical sessions 1-4
+## Part 2 - Practical sessions 1-5
 
 Lab practicals, kept separate from the weekly project. Full details in
 [`practicals/README.md`](practicals/README.md).
@@ -90,8 +94,10 @@ Lab practicals, kept separate from the weekly project. Full details in
 | 3 | `practicals/src/prog3.c` | Process IDs and process states across `fork()` |
 | 4 | `practicals/src/wait_waitpid_demo.c` | `wait()` vs `waitpid()` for synchronising multiple children |
 | 4 | `practicals/src/zombie_process.c` | Creating and eliminating a zombie process |
+| 5 | `practicals/src/prog5.c` | Producer-consumer communication over an anonymous pipe |
+| 5 | `practicals/src/ls_grep_pipe.c` | Building a shell pipeline with `pipe()`, `dup2()` and `exec()` |
 
-Written reports for the analysis parts of practicals 1 and 2 are in
+Written reports for the analysis parts of practicals 1, 2 and 5 are in
 [`practicals/docs/`](practicals/docs/).
 
 ### Build and run
