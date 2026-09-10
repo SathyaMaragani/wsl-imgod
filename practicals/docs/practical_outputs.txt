@@ -1,0 +1,119 @@
+Recorded outputs of all five programs - Ubuntu 26.04 (WSL2), gcc 15.2.0
+Note: PIDs differ on every run.
+
+===== Practical 1 : prog1 (fork + execvp + wait) =====
+$ echo "ls -l" | ./prog1
+Enter a Linux command:
+Parent Process
+Parent PID : 455
+Child PID  : 456
+<output of ls -l produced by the child after execvp>
+Child process has completed execution.
+
+===== Practical 2 : prog2 (open/read/write/close) =====
+$ echo "Operating Systems Lab Program" > input.txt
+$ ./prog2 input.txt output.txt
+File copied successfully.
+$ cat output.txt
+Operating Systems Lab Program
+$ ./prog2
+Usage: ./prog2 <source_file> <destination_file>      (exit status 1)
+
+===== Practical 3 : prog3 (PID / PPID / process states) =====
+Initial State:
+Process PID  : 486
+Parent PPID   : 334
+Process State : Running
+
+Child Process:
+PID           : 487
+PPID          : 486
+Process State : Running
+
+Child Process after sleep:
+PID           : 487
+PPID          : 486
+Process State : Running
+
+Child Process terminating...
+
+Parent Process:
+PID           : 486
+PPID          : 334
+Child PID     : 487
+Process State : Running
+
+Parent Process waiting for child...
+Process State : Waiting/Blocked
+
+Parent Process after child termination:
+PID           : 486
+PPID          : 334
+Process State : Running
+
+Parent Process terminating...
+
+===== Practical 4a : wait_waitpid_demo =====
+Parent Process: PID = 489
+
+Child 1: PID = 490, PPID = 489
+Child 2: PID = 491, PPID = 489
+Child 3: PID = 492, PPID = 489
+Child 1: Completed
+Child 2: Completed
+Child 3: Completed
+
+--- Using wait() ---
+wait(): Child PID 490 terminated with exit status 10
+
+--- Using waitpid() ---
+waitpid(): Child PID 491 terminated with exit status 20
+waitpid(): Child PID 492 terminated with exit status 30
+
+Parent: All children have completed.
+
+Observation: exit statuses are 10, 20, 30 - i.e. (i+1)*10 - confirming that
+WEXITSTATUS() recovers the value passed to exit() in each child.
+
+===== Practical 4b : zombie_process =====
+Parent Process: PID = 493
+Child Process: PID = 495
+Child Process: Exiting...
+Parent Process: Child PID = 495
+
+Child has terminated.
+Parent has NOT called wait() yet.
+Therefore, the child becomes a ZOMBIE.
+
+>>> Check the process table NOW.
+>>> You have 20 seconds to run: ps -el
+
+--- process table during the 20 s window ---
+$ ps -el
+F S   UID     PID    PPID  C PRI  NI ADDR SZ WCHAN  TTY          TIME CMD
+0 S  1000     493     334  0  80   0 -   691 hrtime pts/0    00:00:00 zombie_process
+1 Z  1000     495     493  0  80   0 -     0 -      pts/0    00:00:00 zombie_process
+
+$ ps -o pid,ppid,stat,cmd -e
+    493     334 S+   ./zombie_process
+    495     493 Z+   [zombie_process] <defunct>
+
+State Z and the <defunct> tag confirm the zombie. SZ is 0: the address space is
+already gone, only the process-table entry (exit status) remains.
+
+--- after the parent calls wait() ---
+Parent: Calling wait() now...
+Parent: Child exited normally.
+Parent: Child exit status = 10
+Parent: Child has been reaped.
+Parent: Zombie process eliminated.
+
+$ ps -o pid,ppid,stat,cmd -e | grep zombie_process
+(no entries - the zombie has been removed from the process table)
+
+===== Note on output ordering =====
+When stdout is a pipe or a file, glibc buffers it fully instead of line-by-line.
+fork() duplicates that unflushed buffer, so lines printed before fork() can appear
+twice. Running the programs directly on a terminal (line-buffered), or adding
+fflush(stdout) before fork(), removes the duplication. This does not change the
+PID/PPID values being demonstrated.
