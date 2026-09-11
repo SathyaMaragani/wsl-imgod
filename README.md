@@ -19,7 +19,8 @@ This repository holds two separate bodies of work:
 |------|--------|-----------|
 | Week 1 | Done | Interactive REPL loop, Makefile-based build, Git repository, Linux dev environment |
 | Week 2 | Done | Dynamic command input, `malloc()` allocation, `realloc()` buffer expansion, `free()` cleanup |
-| Week 3 | Not started | - |
+| Week 3 | Done | Command parsing with `strtok()`, dynamic `argv[]` construction, modular parser, ready for `execvp()` |
+| Week 4 | Not started | - |
 
 ### Practical sessions
 
@@ -40,6 +41,10 @@ This repository holds two separate bodies of work:
 `gcc` 15.2.0, `g++`, `gdb` 17.1, `valgrind` 3.26.0, `strace` 6.19, `make` 4.4.1, `git` 2.53.0.
 
 ### Verified results
+
+ShellForge builds with `-Wall -Wextra` with no warnings; the Week 3 parser passes
+all six `tests/test_parser.sh` cases and runs clean under valgrind (5 allocs,
+5 frees, 0 errors).
 
 All seven practical programs compile with `-Wall -g` with no warnings and were run end to end:
 
@@ -73,11 +78,20 @@ Programming Project-Based Learning course.
 - Automatic buffer expansion using `realloc()`
 - Proper memory cleanup using `free()`
 
+### Week 3 Features
+- Command parsing using `strtok()`
+- Dynamic `argv[]` construction
+- Modular parser implementation
+- Ready for process execution with `execvp()`
+
+Details in [`docs/week3_parser.md`](docs/week3_parser.md).
+
 ### Build and run
 
 ```bash
 make
 make run
+make test     # parser tests
 ```
 
 ---
