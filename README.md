@@ -15,15 +15,19 @@ root, and the **practicals**, standalone labs in [`practicals/`](practicals/).
 | 4 | Done | Command execution with `fork()`, `execvp()` and `waitpid()` |
 | 5 | Done | Built-in commands (`cd`, `pwd`, `env`, `help`, `clear`, `exit`) |
 | 6 | Done | Signal handling: survives Ctrl+C, reaps zombies via SIGCHLD |
-| 7 | Not started | - |
+| 7 | Done | Two-stage pipelines with `pipe()` and `dup2()` |
+| 8 | Done | Valgrind-clean, AddressSanitizer build, GDB debugging, defensive-programming audit |
 
 ```bash
 make && make run
-make test          # parser unit tests + shell integration tests
+make test          # 9 parser assertions + 14 shell tests
+make memcheck      # scripted session under valgrind
+make asan          # AddressSanitizer build
 ```
 
 Notes: [`docs/week3_parser.md`](docs/week3_parser.md),
-[`docs/week4_6_processes_builtins_signals.md`](docs/week4_6_processes_builtins_signals.md)
+[`docs/week4_6_processes_builtins_signals.md`](docs/week4_6_processes_builtins_signals.md),
+[`docs/week7_8_pipes_and_memory.md`](docs/week7_8_pipes_and_memory.md)
 
 ## Practical sessions
 

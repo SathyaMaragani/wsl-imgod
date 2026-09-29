@@ -5,7 +5,8 @@ SRC = src/main.c \
       src/parser.c \
       src/process.c \
       src/builtin.c \
-      src/signals.c
+      src/signals.c \
+      src/pipes.c
 TARGET = bin/shellforge
 
 all: $(TARGET)
@@ -16,6 +17,16 @@ $(TARGET): $(SRC)
 
 run:
 	./$(TARGET)
+
+# Week 8: AddressSanitizer build - catches overflows and use-after-free at runtime
+asan:
+	mkdir -p bin
+	$(CC) $(CFLAGS) -fsanitize=address -fno-omit-frame-pointer $(SRC) -o bin/shellforge_asan
+
+# Week 8: leak check over a scripted session
+memcheck: $(TARGET)
+	printf 'echo hi\npwd\nls | wc -l\nno_such_cmd\nexit\n' | \
+	valgrind --leak-check=full --child-silent-after-fork=yes --error-exitcode=9 ./$(TARGET)
 
 test: $(TARGET) bin/test_parser
 	./bin/test_parser

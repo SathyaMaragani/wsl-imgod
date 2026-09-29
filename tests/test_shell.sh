@@ -97,5 +97,38 @@ rm -f "$fifo"
 [ "$zombies" = "0" ] && pass "SIGCHLD reaps children (no zombies)" \
                      || bad "SIGCHLD reaps children (no zombies)" "found $zombies zombie(s)"
 
+# Week 7 - two-stage pipeline
+out=$(printf 'echo hello | tr a-z A-Z\nexit\n' | ./$SHELL_BIN | sed 's/myshell> //g')
+case "$out" in
+  *HELLO*) pass "pipeline: echo | tr" ;;
+  *) bad "pipeline: echo | tr" "got: $out" ;;
+esac
+
+# Week 7 - the second stage really consumes the first stage output, in order
+# (no quotes: the shell has no quote handling yet, so quotes would be literal)
+out=$(printf 'seq 3 | tac
+exit
+' | ./$SHELL_BIN | sed 's/myshell> //g' | tr -d '
+')
+case "$out" in
+  *321*) pass "pipeline: data flows through the pipe in order" ;;
+  *) bad "pipeline: data flows through the pipe in order" "got: $out" ;;
+esac
+
+# Week 7 - shell does not hang and keeps working after a pipeline
+out=$(printf 'ls | wc -l\necho after-pipe\nexit\n' | ./$SHELL_BIN | sed 's/myshell> //g')
+case "$out" in
+  *after-pipe*) pass "shell survives a pipeline" ;;
+  *) bad "shell survives a pipeline" "got: $out" ;;
+esac
+
+# Week 7 - malformed pipelines are rejected, not crashed on
+out=$(printf '| wc\nls |\na | b | c\necho still-here\nexit\n' | ./$SHELL_BIN 2>&1)
+case "$out" in
+  *"Invalid pipe command"*"only two-command pipelines"*still-here*)
+      pass "malformed pipelines rejected" ;;
+  *)  bad "malformed pipelines rejected" "got: $out" ;;
+esac
+
 [ $fail -eq 0 ] && echo "all shell tests passed" || echo "some tests failed"
 exit $fail
