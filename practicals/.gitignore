@@ -5,3 +5,11 @@ wait_waitpid_demo
 zombie_process
 prog5
 ls_grep_pipe
+prog6_fifo_server
+prog6_fifo_client
+signal_handler
+prog7_linuxaddr
+memory_demo
+dynamic_memory
+dynamic_memory_leak
+cow_demo

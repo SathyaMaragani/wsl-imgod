@@ -167,3 +167,78 @@ produced byte-for-byte identical output, confirming equivalence.
 526   dup2(3, 0)                      = 0        (child 2: stdin  <- pipe)
 525   execve("/usr/bin/ls", ["ls", "-l"], ...)
 524   wait4(525, ...)
+
+===== Practical 6a : FIFO client-server (five clients) =====
+Server:
+Server started...
+Waiting for clients...
+Received from Client PID 482: Hello Server      / Response sent to Client PID 482
+Received from Client PID 484: How are you?      / Response sent to Client PID 484
+Received from Client PID 487: msg from A        / Response sent to Client PID 487
+Received from Client PID 490: msg from B        / Response sent to Client PID 490
+Received from Client PID 493: msg from C        / Response sent to Client PID 493
+Clients each received "Server processed: <their own message>".
+Clients 487/490/493 were started simultaneously; no message was interleaved,
+because a 260-byte Request is well under PIPE_BUF (4096) and so written atomically.
+
+===== Practical 6b : sigaction (SIGINT / SIGTERM / SIGUSR1) =====
+Signal handling program started.
+Process PID = 497
+$ kill -SIGUSR1 497  -> SIGUSR1 received! / User-defined event handled.
+$ kill -SIGINT  497  -> SIGINT received!  / Interrupt signal handled.
+$ kill -SIGTERM 497  -> SIGTERM received! / Termination requested.
+                        Program terminating gracefully...
+
+===== Practical 7a : prog7_linuxaddr =====
+===== Linux Process Address Space =====
+Code address       : 0x58aca87511c9
+Global address     : 0x58aca8754010
+Static address     : 0x58aca8754014
+BSS address        : 0x58aca875401c
+Heap address       : 0x58accd6c2010
+Stack address      : 0x7fff2d1832fc
+(Addresses differ every run because of ASLR; only the relative layout is stable.)
+
+===== Practical 7b : memory_demo + /proc/<PID>/maps =====
+Process ID (PID): 504
+Address of code   : 0x57e62d6de229   -> 57e62d6de000-57e62d6df000 r-xp  memory_demo
+Address of global : 0x57e62d6e1010   -> 57e62d6e1000-57e62d6e2000 rw-p  memory_demo
+Address of static : 0x57e62d6e1014   -> same rw-p region
+Address of BSS    : 0x57e62d6e1024   -> same rw-p region
+Address of heap   : 0x57e63517a010   -> 57e63517a000-57e63519b000 rw-p  [heap]
+Address of stack  : 0x7fff4904f63c   -> 7fff49031000-7fff49052000 rw-p  [stack]
+VmSize: 2760 kB   VmRSS: 1792 kB   VmData: 224 kB   VmStk: 132 kB   VmExe: 4 kB
+
+===== Practical 8a : dynamic_memory + valgrind =====
+1. malloc()  -> 10 20 30 40 50
+2. calloc()  -> 0 0 0 0 0
+3. realloc() -> 10 20 30 40 50 60 70 80 90 100
+4. free()    -> Allocated memory successfully released.
+valgrind: in use at exit: 0 bytes in 0 blocks
+          total heap usage: 4 allocs, 4 frees, 4,176 bytes allocated
+          All heap blocks were freed -- no leaks are possible
+          ERROR SUMMARY: 0 errors from 0 contexts
+
+===== Practical 8b : dynamic_memory_leak (deliberate leak) =====
+valgrind: in use at exit: 20 bytes in 1 blocks
+          total heap usage: 4 allocs, 3 frees
+          20 bytes in 1 blocks are definitely lost in loss record 1 of 1
+             by 0x4001249: main (dynamic_memory_leak.c:25)
+          ERROR SUMMARY: 1 errors from 1 contexts
+20 bytes = 5 * sizeof(int) - exactly the calloc() block that was never freed.
+
+===== Practical 8c : cow_demo - measured copy-on-write =====
+Sampled from /proc/<PID>/smaps_rollup (all values kB):
+
+                              Rss      Pss   Shared_Dirty  Private_Dirty
+Stage 1  parent (pre-fork)  104196   102558            0         102508
+Stage 2  parent            104260    51317       102476             32
+Stage 2  child             103404    51286       102476             32
+Stage 3  parent            104260   102519           72         102436
+Stage 3  child             103404   102488           72         102436
+
+Stage 2: fork() copied nothing - the 100 MB became Shared_Dirty in both
+processes and Pss halved to ~51 MB each.
+Stage 3: after the child wrote one byte per 4 KB page, Shared_Dirty collapsed
+to 72 kB and Private_Dirty rose to ~102 MB in both - the copy happened on
+write. Total physical use went from ~100 MB to ~200 MB.

@@ -4,12 +4,16 @@
 #include "../include/shell.h"
 #include "../include/input.h"
 #include "../include/parser.h"
+#include "../include/process.h"
+#include "../include/builtin.h"
+#include "../include/signals.h"
 
 int main()
 {
     char *line;
     char **tokens;
-    int i;
+
+    initialize_signals();
 
     printf("=================================\n");
     printf("%s Version %s\n",SHELL_NAME,VERSION);
@@ -18,6 +22,8 @@ int main()
     while(1)
     {
         printf("myshell> ");
+        fflush(stdout);
+
         line = read_line();
 
         if(strcmp(line,"exit")==0)
@@ -28,13 +34,10 @@ int main()
 
         tokens = parse_line(line);
 
-        if(tokens[0] != NULL)
+        /* built-ins run in the shell itself; everything else is forked */
+        if(execute_builtin(tokens)==0)
         {
-            printf("\nParsed Tokens\n");
-            for(i=0;tokens[i]!=NULL;i++)
-            {
-                printf("argv[%d] = %s\n",i,tokens[i]);
-            }
+            execute(tokens);
         }
 
         free_tokens(tokens);
