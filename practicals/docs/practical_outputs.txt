@@ -242,3 +242,57 @@ processes and Pss halved to ~51 MB each.
 Stage 3: after the child wrote one byte per 4 KB page, Shared_Dirty collapsed
 to 72 kB and Private_Dirty rose to ~102 MB in both - the copy happened on
 write. Total physical use went from ~100 MB to ~200 MB.
+
+===== Practical 9a : copy_lowlevel vs copy_stdio (100 MB, both -O2) =====
+$ ./copy_lowlevel input.dat output_low.dat
+Source file size: 104857600 bytes
+File copied successfully.
+$ ./copy_stdio input.dat output_stdio.dat
+Source file size: 104857600 bytes
+File copied successfully.
+
+$ sha256sum input.dat output_low.dat output_stdio.dat
+4e861ac53747ec4720a733d525fdb0c9c438708347eb21c41297c0cdb40360bf  input.dat
+4e861ac53747ec4720a733d525fdb0c9c438708347eb21c41297c0cdb40360bf  output_low.dat
+4e861ac53747ec4720a733d525fdb0c9c438708347eb21c41297c0cdb40360bf  output_stdio.dat
+(cmp reported no differences for either copy)
+
+Timing - 6 alternating runs each, first discarded as warm-up:
+  copy_lowlevel  106 104 107 103 106 ms   median 106 ms   ~943 MB/s
+  copy_stdio     122 121 132 119 120 ms   median 121 ms   ~826 MB/s
+  low-level is ~14% faster
+
+System calls (strace -c):
+  copy_lowlevel  12802 read  + 12801 write = 25603
+  copy_stdio     12802 read  + 25600 write = 38402
+Write sizes on a 10 MB file:
+  copy_lowlevel  1280 writes of 8192 bytes
+  copy_stdio     2558 writes of 4096 bytes (+1 of 8192)
+Reason: glibc gives the stream a 4096-byte buffer, so each 8192-byte fwrite()
+is split into two 4 KB writes - an extra memcpy and twice the syscalls, because
+the program already buffers at 8 KB itself.
+
+===== Practical 9b : dup2() redirection =====
+$ ./redirect_output
+Before redirection                      <- terminal only
+$ cat output.txt
+Hello from redirected standard output!
+This message is stored in output.txt
+
+strace evidence:
+  openat(AT_FDCWD, "output.txt", O_WRONLY|O_CREAT|O_TRUNC, 0644) = 3
+  write(1, "Before redirection\n", 19)                            = 19
+  dup2(3, 1)                                                      = 1
+  write(1, "Hello from redirected standard o"..., 76)              = 76
+The same write(1, ...) reaches the terminal before dup2 and the file after it.
+
+$ cat input.txt
+Operating Systems
+Linux File I/O
+dup2 system call
+$ ./redirect_input
+Reading from redirected standard input:
+Operating Systems
+Linux File I/O
+dup2 system call
+fgets(stdin) read the file, with no keyboard involved.

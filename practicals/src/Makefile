@@ -1,10 +1,12 @@
 CC = gcc
 CFLAGS = -Wall -g
 XFLAGS = -Wall -Wextra -g
+OFLAGS = -Wall -Wextra -O2
 
 all: prog1 prog2 prog3 wait_waitpid_demo zombie_process prog5 ls_grep_pipe \
      prog6_fifo_server prog6_fifo_client signal_handler \
-     prog7_linuxaddr memory_demo dynamic_memory dynamic_memory_leak cow_demo
+     prog7_linuxaddr memory_demo dynamic_memory dynamic_memory_leak cow_demo \
+     copy_lowlevel copy_stdio redirect_output redirect_input
 
 prog1: prog1.c
 	$(CC) $(CFLAGS) -o prog1 prog1.c
@@ -51,7 +53,21 @@ dynamic_memory_leak: dynamic_memory_leak.c
 cow_demo: cow_demo.c
 	$(CC) $(XFLAGS) -o cow_demo cow_demo.c
 
+copy_lowlevel: copy_lowlevel.c
+	$(CC) $(OFLAGS) -o copy_lowlevel copy_lowlevel.c
+
+copy_stdio: copy_stdio.c
+	$(CC) $(OFLAGS) -o copy_stdio copy_stdio.c
+
+redirect_output: redirect_output.c
+	$(CC) $(XFLAGS) -o redirect_output redirect_output.c
+
+redirect_input: redirect_input.c
+	$(CC) $(XFLAGS) -o redirect_input redirect_input.c
+
 clean:
 	rm -f prog1 prog2 prog3 wait_waitpid_demo zombie_process prog5 ls_grep_pipe \
 	      prog6_fifo_server prog6_fifo_client signal_handler \
-	      prog7_linuxaddr memory_demo dynamic_memory dynamic_memory_leak cow_demo
+	      prog7_linuxaddr memory_demo dynamic_memory dynamic_memory_leak cow_demo \
+	      copy_lowlevel copy_stdio redirect_output redirect_input \
+     copy_lowlevel copy_stdio redirect_output redirect_input

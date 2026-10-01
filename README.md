@@ -41,6 +41,7 @@ Notes: [`docs/week3_parser.md`](docs/week3_parser.md),
 | 6 | Done | Client-server over named pipes (FIFOs); `sigaction()` signal handling |
 | 7 | Done | Process address space: code, data, BSS, heap, stack vs `/proc/<PID>/maps` |
 | 8 | Done | `malloc`/`calloc`/`realloc`/`free`, Valgrind leak detection, copy-on-write |
+| 9 | Done | Low-level vs stdio file copy benchmarked; `dup2()` I/O redirection |
 
 ```bash
 cd practicals/src && make

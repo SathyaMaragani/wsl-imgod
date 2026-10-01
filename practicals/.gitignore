@@ -13,3 +13,8 @@ memory_demo
 dynamic_memory
 dynamic_memory_leak
 cow_demo
+copy_lowlevel
+copy_stdio
+redirect_output
+redirect_input
+*.dat
